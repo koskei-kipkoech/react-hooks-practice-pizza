@@ -1,8 +1,59 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 
-function PizzaForm() {
+function PizzaForm({ pizzaToEdit, onSubmit }) {
+  const [formData, setFormData] = useState({
+    topping: "",
+    size: "Small",
+    vegetarian: false,
+  });
+
+  // Update formData whenever pizzaToEdit changes (for editing a pizza)
+  useEffect(() => {
+    if (pizzaToEdit) {
+      setFormData({
+        topping: pizzaToEdit.topping,
+        size: pizzaToEdit.size,
+        vegetarian: pizzaToEdit.vegetarian,
+      });
+    } else {
+      // Reset formData if no pizzaToEdit (for adding new pizza)
+      setFormData({
+        topping: "",
+        size: "Small",
+        vegetarian: false,
+      });
+    }
+  }, [pizzaToEdit]);
+
+  // Handle input changes for form fields
+  function handleChange(e) {
+    const { name, value, type } = e.target;
+    const newValue = type === "radio" ? value === "Vegetarian" : value;
+    
+    setFormData((prevData) => ({
+      ...prevData,
+      [name]: newValue,
+    }));
+  }
+
+  function handleSubmit(e) {
+    e.preventDefault();
+    if (pizzaToEdit) {
+      onSubmit({ ...formData, id: pizzaToEdit.id });
+    } else {
+      onSubmit({ ...formData });
+    }
+
+    // Clear the form after submission
+    setFormData({
+      topping: "",
+      size: "Small",
+      vegetarian: false,
+    });
+  }
+
   return (
-    <form onSubmit={null /*handle that submit*/}>
+    <form onSubmit={handleSubmit}>
       <div className="form-row">
         <div className="col-5">
           <input
@@ -10,10 +61,17 @@ function PizzaForm() {
             type="text"
             name="topping"
             placeholder="Pizza Topping"
+            value={formData.topping}
+            onChange={handleChange}
           />
         </div>
         <div className="col">
-          <select className="form-control" name="size">
+          <select
+            className="form-control"
+            name="size"
+            value={formData.size}
+            onChange={handleChange}
+          >
             <option value="Small">Small</option>
             <option value="Medium">Medium</option>
             <option value="Large">Large</option>
@@ -26,6 +84,8 @@ function PizzaForm() {
               type="radio"
               name="vegetarian"
               value="Vegetarian"
+              checked={formData.vegetarian === true}
+              onChange={handleChange}
             />
             <label className="form-check-label">Vegetarian</label>
           </div>
@@ -35,13 +95,15 @@ function PizzaForm() {
               type="radio"
               name="vegetarian"
               value="Not Vegetarian"
+              checked={formData.vegetarian === false}
+              onChange={handleChange}
             />
             <label className="form-check-label">Not Vegetarian</label>
           </div>
         </div>
         <div className="col">
           <button type="submit" className="btn btn-success">
-            Submit
+            {pizzaToEdit ? "Update Pizza" : "Submit"}
           </button>
         </div>
       </div>
